@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('客服')" ></head>
+
+<body class="reward-body">
+	
+	<div id="app">
+		
+		<van-nav-bar title="客服Q&A">
+			<van-icon name="arrow-left" slot="left" color="#000000" size="20px" @click="onClickLeft" />
+		</van-nav-bar>
+		
+		<span>什么是鸽子币？</span>
+		<span>&nbsp&nbsp在本站消费1元，即可获得1鸽子币。100鸽子币便可抵换1元。</span>
+		
+		
+	</div>
+	
+	<script>
+		var data4Vue = {
+			totalNow: 100
+		};
+		
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {
+			},
+			methods: {
+				onClickLeft() {
+					goBack();
+				}
+			}
+		});
+	</script>
+	
+</body>
+</html>

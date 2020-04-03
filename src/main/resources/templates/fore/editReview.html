@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('用户修改')" ></head>
+
+<body class="editReviewBody">
+
+	<div id="app">
+	
+		<div v-if="showContent">
+			<van-row class="pay-success">
+			<van-col span="24" class="pay-success-text">
+				已完成此订单的评价，感谢你的分享！
+			</van-col>
+			<van-col offset="4" span="8">
+				<van-button
+					size="normal"
+					round
+					color="linear-gradient(to right, #FD5632, #F01325)"
+					url="myorder?activeName=waitReview"
+				>我的订单</van-button>
+			</van-col>
+			<van-col span="8">
+				<van-button
+					size="normal"
+					round
+					color="linear-gradient(to right, #4DBEE4, #00A0E9)"
+					url="home"
+				>回到首页</van-button>
+			</van-col>
+		</div>
+	
+		<div v-else>
+			<van-nav-bar title="商品评价">
+				<van-icon name="arrow-left" slot="left" color="#000000" size="20px" @click="onClickLeft" />
+				<a slot="right" href="#" style="color: #1989FA">({{flag+1}}/{{orderItems.length}})</a>
+			</van-nav-bar>
+			
+			<div class="editReview-head">
+				<van-row v-if="null!=products[flag]">
+					<van-col offset="2" span="6">
+						<van-image radius="10px" :src="'img/productSingle/' + products[flag].firstProductImage.id + '.jpg'"></van-image>
+					</van-col>
+					<van-col offset="1" span="15">
+						<span style="font-size: 15px;">{{products[flag].name}}</span>
+					</van-col>
+				</van-row>
+			</div>
+			
+			<van-field
+			  v-model="content"
+			  rows="10"
+			  autosize
+			  type="textarea"
+			  placeholder="说说你的使用体验吧~"
+			></van-field>
+			
+			<van-button style="margin-top: 20px;" size="large" color="#1989FA" @click="onSubmit">提交</van-button>
+		</div>
+		
+	</div>
+
+	<script>
+		
+		var data4Vue = {
+			order: '',
+			orderItems: [],
+			products: [],
+			contents: [],
+			content: '',
+			flag: 0,
+			showContent: false
+		};
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {
+				this.load();
+			},
+			methods: {
+				onClickLeft() {
+					vant.Dialog.confirm({
+					    title: '确认',
+					    message: '你的评价在退出后将被消除，是否返回？'
+					}).then(() => {
+					  // on confirm
+						goBack();
+					}).catch(() => {
+					    // on cancel
+					    console.log("返回未确认");
+					});
+				},
+				load() {
+					var oid = getUrlParms("oid");
+					var url = "foreeditreview?oid="+oid;
+					axios.get(url).then(function(response){
+						vue.order = response.data.order;
+						vue.orderItems = response.data.orderItems;
+						vue.products = response.data.products;
+					})
+				},
+				onSubmit() {
+					//将content添加到contents中，当全部评价都填写好后，一次性提交给后台。防止用户写了一条就点导航栏返回。
+					//关于flag与length
+					//假设有两条OrderItems，那么当flag是0和1时，显示评价页面。当flag等于2时，就结束评价。
+					this.contents.push(this.content);
+					this.content = '';
+					this.flag < this.orderItems.length ? this.flag += 1 : this.flag = this.flag;
+					if(this.flag == this.orderItems.length) {
+						this.onAddReview();
+						this.showContent = true;
+					}
+				},
+				onAddReview() {
+					var url = "";
+					for(let i=0; i<this.flag; i++) {
+						url =  "foredoreview?oid="+this.order.id+"&pid="+this.products[i].id+"&content="+this.contents[i];
+						axios.post(url).then(function(response){
+							if(0==response.data.code) {
+								console.log("评价添加成功");
+							}
+						})
+					}
+				}
+			}
+		});
+	</script>
+
+</body>
+</html>

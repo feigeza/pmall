@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="include/admin/adminHeader::html('评价管理')" ></head>
+<body>
+<div th:replace="include/admin/adminNavigator::html" ></div>
+<script>
+    $(function(){
+        var pid = getUrlParms("pid");
+        var data4Vue = {
+            uri:'reviews',
+            data4review: {
+    			review: '',
+    			count: 0,
+    			user: '',
+    			reviews: [],
+    			users: []
+    		},
+    		product: '',
+    		category: '',
+    		pagination: {},
+    		beans: [],
+    		users: [],
+    		reviewStatus: []
+        };
+ 
+        //ViewModel
+        var vue = new Vue({
+            el: '#workingArea',
+            data: data4Vue,
+            mounted:function(){ //mounted　表示这个 Vue 对象加载成功了
+                this.list(pid,1);
+            	this.getProduct(pid);
+            },
+            methods: {
+                list:function(pid,start){
+                    var url = "products/" + pid +"/" + this.uri+"?start="+start;
+                    axios.get(url).then(function(response) {
+                        vue.pagination = response.data;
+                        vue.beans = response.data.list;
+                        vue.getUsers(vue.beans);
+                        vue.getReviewStatus(vue.beans);
+                    });
+                },
+                getUsers(beans) {
+                	for(let i=0; i<beans.length; i++) {
+                		var url = "users/" + beans[i].uid;
+                		axios.get(url).then(function(response){
+                			vue.users.push(response.data);
+                		})
+                	}
+                },
+                getReviewStatus(beans) {
+                	for(let i=0; i<beans.length; i++) {
+                		var url = "reviewStatus/" + beans[i].id;
+                		axios.get(url).then(function(response){
+                			vue.reviewStatus.push(response.data);
+                		})
+                	}
+                },
+                getProduct(pid) {
+                	var url = "products/"+pid;
+                    axios.get(url).then(function(response) {
+                        vue.product = response.data;
+                        url = "categories/"+vue.product.cid;
+                        axios.get(url).then(function(response){
+                        	vue.category = response.data;
+                        })
+                    })
+                },
+                jump: function(page){
+                    jump(page,vue); //定义在adminHeader.html 中
+                },
+                jumpByNumber: function(start){
+                    jumpByNumber(start,vue);
+                },
+                onChangeStatus(bean, str) {
+                	console.log(bean);
+                	var url = "reviewStatus?str="+str;
+                	
+                	axios.put(url,bean).then(function(response){
+                		location.href = "admin_review_list?pid="+vue.product.id;
+                	})
+                },
+                deleteBean(id) {
+                	
+                }
+            }
+ 
+        });
+    });
+ 
+</script>
+ 
+<div id="workingArea" >
+   <ol class="breadcrumb">
+        <li><a href="admin_category_list">所有分类</a></li>
+        <li><a :href="'admin_product_list?cid='+category.id">{{category.name}}</a></li>
+        <li class="active">{{product.name}}</li>
+        <li class="active">产品评价管理</li>
+    </ol>
+ 
+    <div class="listDataTableDiv">
+        <table class="table table-striped table-bordered table-hover table-condensed">
+            <thead>
+            <tr class="success">
+                <th>ID</th>
+                <th>用户</th>
+                <th>内容</th>
+                <th width="180px">状态</th>
+                
+                <th width="160px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="bean,index in beans ">
+                <td>{{bean.id}}</td>
+                <td v-if="null!=users[index]">{{users[index].name}}</td>
+                <td>{{bean.content}}</td>
+ 				<td v-if="null!=reviewStatus[index]">
+ 					<button v-if="1==reviewStatus[index].essence" class="btn btn-primary btn-xs">已加精</button>
+ 					<button v-if="1==reviewStatus[index].recommend" class="btn btn-primary btn-xs">已推荐</button>
+ 					<button v-if="1==reviewStatus[index].sticky" class="btn btn-primary btn-xs">已置顶</button>
+ 				</td>
+ 				
+                <td v-if="null!=reviewStatus[index]">
+                	<button v-if="1==reviewStatus[index].essence" @click="onChangeStatus(bean, 'essence')" class="btn btn-primary btn-xs">取精</button>
+                	<button v-else @click="onChangeStatus(bean, 'essence')" class="btn btn-primary btn-xs">加精</button>
+                	
+                	<button v-if="1==reviewStatus[index].recommend" @click="onChangeStatus(bean, 'recommend')" class="btn btn-primary btn-xs">取推</button>
+                	<button v-else @click="onChangeStatus(bean, 'recommend')" class="btn btn-primary btn-xs">加推</button>
+                	
+                	<button v-if="1==reviewStatus[index].sticky" @click="onChangeStatus(bean, 'sticky')" class="btn btn-primary btn-xs">取置</button>
+                	<button v-else @click="onChangeStatus(bean, 'sticky')" class="btn btn-primary btn-xs">加置</button>
+                	
+                    <a href="#nowhere"  @click="deleteBean(bean.id)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+ 
+  	<div th:replace="include/admin/adminPage::html" ></div>
+ 
+</div>
+ 
+<div th:replace="include/admin/adminFooter::html" ></div>
+</body>
+</html>

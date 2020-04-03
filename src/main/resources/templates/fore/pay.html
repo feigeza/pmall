@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('支付页面')" ></head>
+
+<body>
+	<div id="app">
+	
+	<div v-if="showPaySuccess">
+		<van-row class="pay-success">
+			<van-col span="24" class="pay-success-text">
+				支付成功
+			</van-col>
+			<van-col offset="4" span="8">
+				<van-button
+					size="normal"
+					round
+					color="linear-gradient(to right, #FD5632, #F01325)"
+					url="myorder?activeName=waitDelivery"
+				>我的订单</van-button>
+			</van-col>
+			<van-col span="8">
+				<van-button
+					size="normal"
+					round
+					color="linear-gradient(to right, #4DBEE4, #00A0E9)"
+					url="home"
+				>回到首页</van-button>
+			</van-col>
+		</van-row>
+	</div>
+	<div v-else>
+		<van-row class="m-header" >
+			<van-col span="3" @click="leftBack">
+				<van-icon name="arrow-left" class="m-header-icon"></van-icon>
+			</van-col>
+			<van-col>
+				<span>支付</span>
+			</van-col>
+		</van-row>
+		
+		<van-row class="pay-row" style="text-align: center;">
+			<van-col span="24" class="pay-number">
+				￥{{total | formatMoneyFilter}}
+			</van-col>
+			<van-button
+				size="normal"
+				color="linear-gradient(to right, #FD5632, #F01325)"
+				@click="onConfirm"
+			>去支付</van-button>
+			<van-col span="24" style="color: grey; margin-top: 10px; text-decoration: underline; ">
+				因为没有写支付，请点击支付按钮模拟确认支付。
+			</van-col>
+		</van-row>
+	</div>
+
+	</div>
+
+	<script>
+		var data4Vue = {
+			oid: '',
+			total: '',
+			order: '',
+			showPaySuccess: false
+		}
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted:function(){
+                this.oid = getUrlParms("oid");
+                this.total = getUrlParms("total");
+            },
+			methods: {
+				leftBack() {
+					goBack();
+				},
+				onConfirm() {
+					var url = "forepayed?oid=" + this.oid;
+					axios.get(url).then(function(response){
+						vue.order = response.data;
+						vue.showPaySuccess = true;
+					})
+				}
+			}
+		});
+	</script>
+</body>
+</html>

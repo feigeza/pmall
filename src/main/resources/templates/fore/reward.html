@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('我的积分')" ></head>
+
+<body class="reward-body">
+	
+	<div id="app">
+		
+		<van-nav-bar title="我的积分">
+			<van-icon name="arrow-left" slot="left" color="#000000" size="20px" @click="onClickLeft" />
+		</van-nav-bar>
+		
+		<van-row class="reward-information">
+			<van-col span="24">当前鸽子币 {{totalNow}} 个</van-col>
+		</van-row>
+		
+		<div class="reward-details">
+			<div class="reward-details-head">鸽子币收支明细</div>
+			<div class="reward-details-content">
+				<van-col span="1"></van-col>
+				<van-col span="14">2018-10-26 12:43:09</van-col>
+				<van-col span="8" style="text-align: right;">+10</van-col>
+				<van-col span="1"></van-col>
+			</div>
+		</div>
+		<van-divider>没有更多了</van-divider>
+		
+	</div>
+	
+	<script>
+		var data4Vue = {
+			totalNow: 100
+		};
+		
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {
+			},
+			methods: {
+				onClickLeft() {
+					goBack();
+				}
+			}
+		});
+	</script>
+	
+</body>
+</html>

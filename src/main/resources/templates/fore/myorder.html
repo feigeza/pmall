@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('我的订单')" ></head>
+
+<body>
+	<div id="app">
+
+		<van-nav-bar title="我的订单">
+			<van-icon name="arrow-left" slot="left" color="#000000" size="20px" @click="onClickLeft" />
+		</van-nav-bar>
+
+		<van-tabs sticky :offset-top="tabOffsetTop" animated @change="onChange" @scroll="onChangeOffset" v-model="activeName">
+			<van-tab v-for="tab in tabTitles" :name="tab.name" :title="tab.title">
+				<div class="myorder-content" v-if="''!=orders">
+					<van-row 
+						v-for="(order,index1) in orders"
+						class="myorder-orderItem" 
+					>
+						<div class="myorder-orderItem-head">
+							<span>订单号：{{order.orderCode}}</span>
+							<span class="myorder-orderItem-head-statue">{{order.statusDesc}}</span>
+						</div>
+						<van-card 
+							v-for="(product,index2) in products[index1]"
+							class="myorder-orderItem-card" 
+							:num = "orderItems[index1][index2].number"
+							:price="product.originalPrice | formatMoneyFilter" 
+							:thumb="'img/productSingle/'+product.firstProductImage.id+'.jpg'"
+							:thumb-link = "'product?pid='+product.id"
+						>
+							<div slot="title" class="card-name">
+								{{product.name}}
+							</div>
+							<div slot="desc" class="card-subTitle">
+								{{product.subTitle}}
+							</div>
+						</van-card>
+						<div class="myorder-orderItem-bottom">
+							<van-button size="mini" round type="danger" @click="onDeleteOrder(order.id)">删除</van-button>
+							<van-button v-if="activeName == 'waitPay'" size="mini" round plain type="danger" @click="toPay(order.id,totals[index1])">去付款</van-button>
+							<van-button v-if="activeName == 'waitConfirm'" size="mini" round plain type="primary" @click="toRecieve(order.id)">确认收货</van-button>
+							<van-button v-if="activeName == 'waitReview'" size="mini" round plain type="primary" @click="toReview(order.id)">去评价</van-button>
+							<span style="float: right;">共{{allCounts[index1]}}件商品，合计:￥<span class="myorder-orderItem-bottom-price">{{totals[index1]}}</span></span>
+						</div>
+					</van-row>
+				</div>
+				<div v-else class="myorder-content-empty">
+					<span>您还没有相关的订单</span>
+				</div>
+			</van-tab>
+		</van-tabs>
+
+	</div>
+
+	<script>
+		var data4Vue = {
+			activeName: 'all',
+			tabOffsetTop: 45,
+			tabTitles: [
+				{name: "all", title: "所有订单"},
+				{name: "waitPay", title: "待付款"},
+				{name: "waitDelivery", title: "待发货"},
+				{name: "waitConfirm", title: "待收货"},
+				{name: "waitReview", title: "待评价"}
+			],
+			orders: [],
+			orderItems: [],
+			products: [],
+			totals: [],
+			allCounts: []
+		}
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted: function(){
+				this.showTab();
+				this.onChange(this.activeName);
+			},
+			methods: {
+				showTab() {
+					var tab = getUrlParms("activeName");
+					if(null!=tab) {
+						this.activeName = tab;
+					}
+				},
+				onChange(index) {
+					var url = "forebought?status=" + index;
+					axios.get(url).then(function(response){
+						vue.orders = response.data.orders;
+						vue.orderItems = response.data.orderItems;
+						vue.products = response.data.products;
+						vue.totals = response.data.totals;
+						vue.allCounts = response.data.allCounts;
+					})
+				},
+				onChangeOffset() {
+					this.tabOffsetTop = 0;
+				},
+				onClickLeft() {
+					//goBack();
+					location.href="user";
+				},
+				onDeleteOrder(oid) {
+					vant.Dialog.confirm({
+					  title: '确认',
+					  message: '是否删除？'
+					}).then(() => {
+					  // on confirm
+					  var url = "foredeleteorder?oid=" + oid;
+						axios.delete(url).then(function(response){
+							if(0==response.data.code) {
+								location.href = "myorder";
+							}
+							else {
+								console.log("删除时发生问题");
+							}
+						})
+					}).catch(() => {
+					  // on cancel
+					  console.log("删除未确认");
+					});
+				},
+				toPay(oid,total) {
+					location.href = "pay?oid=" + oid +"&total=" + total;
+				},
+				toRecieve(oid) {
+					vant.Dialog.confirm({
+					  title: '确认',
+					  message: '请收到货后，再确认收货！否则您可能财货两空！'
+					}).then(() => {
+					  // on confirm
+					  var url = "forereceived?oid=" + oid;
+						axios.get(url).then(function(response){
+							if(0==response.data.code) {
+								location.href = "myorder?activeName=waitReview";
+							}
+							else {
+								console.log("确认收获未成功");
+							}
+						})
+					}).catch(() => {
+					  // on cancel
+					  console.log("收货未确认");
+					});
+				},
+				toReview(oid) {
+					location.href = "review_edit?oid=" + oid;
+				}
+			}
+		});
+	</script>
+</body>
+</html>

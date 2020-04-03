@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('我的')" ></head>
+
+<body>
+	
+	<div id="app">
+		
+		<van-tabbar v-model="active" @change="onChange" class="tabber-border">
+			<van-tabbar-item name="home" icon="wap-home-o">首页</van-tabbar-item>
+			<van-tabbar-item name="category" icon="apps-o">分类</van-tabbar-item>
+			<van-tabbar-item name="cart" icon="shopping-cart-o">购物车</van-tabbar-item>
+			<van-tabbar-item name="user" icon="user-o">我的</van-tabbar-item>
+		</van-tabbar>
+		
+		<van-nav-bar title="购物车" >
+		</van-nav-bar>
+		
+		<div class="cart-row" th:if="${null!=session.user}" v-if="null!=products&&''!=products">
+			<div v-for="orderItem,index in orderItems" class="cart-show">
+				<van-card
+					v-if="products[index]!=undefined"
+				    :num="orderItem.number"
+				    :price="products[index].originalPrice | formatMoneyFilter"
+				    :thumb="'img/productSingle/' + products[index].firstProductImage.id + '.jpg'"
+				    :thumb-link="'product?pid='+orderItem.pid"
+				>
+				<div slot="title" class="cart-item-card-title">
+					{{products[index].name}}
+				</div>
+				<div slot="desc" class="cart-item-card-subTitle">
+					{{products[index].subTitle}}
+				</div>
+			    <div slot="footer">
+			    	<van-row>
+			    		<van-col offset="2" span="6">
+			    			<van-checkbox 
+			    				v-model="orderItemChecked[index].checked"
+			    				@change="onCalculateTotal"
+			    			>
+			    			</van-checkbox>
+			    		</van-col>
+			    		<van-col offset="4" span="8">
+			    			<van-stepper
+								v-model="orderItem.number"
+								:max="products[index].stock"
+								integer
+								input-width="30px"
+								button-size="22px"
+								@change="onChangeOrderItem(index)"
+							></van-stepper>
+			    		</van-col>
+			    		<van-col span="4">
+			    			<van-button size="mini" type="danger" @click="onDeleteOrderItem(orderItem.id)">删除</van-button>
+			    		</van-col>
+			    	</van-row>
+			    </div>
+				</van-card>
+			</div>
+		</div>
+		<div v-else class="cart-empty">
+			<a href="home">购物车空空如也，去添加点好货吧~</a>
+		</div>
+		
+		<div class="cart-unlogin" th:if="${null==session.user}">
+			<a href="login">未登录，点击去登录。</a>
+		</div>
+		
+		<van-submit-bar
+			class="cart-submit"
+		    button-text="提交订单"
+		    @submit="toOrderConfirm"
+		>
+			<van-col span="6">
+				<van-checkbox 
+					v-model="checked" 
+					@click="onCheckAll" 
+				>全选</van-checkbox>
+			</van-col>
+			<van-col span="10">
+				<span>
+					合计：
+					<span class="orderConfirm-bottom-price-symbol">￥</span>
+					<span class="orderConfirm-bottom-price-num">{{total | formatMoneyFilter}}</span>
+			    </span>
+			</van-col>		    
+		</van-submit-bar>
+		
+	</div>
+	
+	<script>
+	
+		Vue.use(vant.Dialog);
+	
+		var data4Vue = {
+			active: 'cart',
+			checked: false,
+			orderItems: [],
+			products: [],
+			total: 0,
+			orderItemChecked: []
+		};
+		
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {
+				this.getOrderItems();
+			},
+			methods: {
+				onChange(index) {
+					location.href = index ;
+				},
+				toOrderConfirm() {
+					//如果没有勾选商品，提示。否则就跳转到orderConfirm页面。
+					var flag = false;
+					for(let i=0; i<this.orderItemChecked.length; i++) {
+						if(this.orderItemChecked[i].checked) {
+							flag = true;
+							break;
+						}
+					}
+					
+					if(flag) {
+						var oiids = "";
+						for(let i=0; i<this.orderItemChecked.length; i++) {
+							if(this.orderItemChecked[i].checked)
+								oiids = oiids + "&oiid=" + this.orderItemChecked[i].id;
+						}
+						oiids = oiids.substring(1);
+						location.href = "orderConfirm?" + oiids;
+					}
+					else {
+						vant.Toast("请勾选商品");
+						return;
+					}
+				},
+				getOrderItems() {
+					var url = "forechecklogin";
+					axios.get(url).then(function(response){
+						if(0==response.data.code) {
+							url = "forecart"
+							axios.get(url).then(function(response){
+								vue.orderItems = response.data;
+								for(let i=0; i<vue.orderItems.length; i++) {
+									vue.getProduct(vue.orderItems[i]);
+									vue.orderItemChecked.push({id: vue.orderItems[i].id, checked: false});
+								}
+							})
+						}
+						else {
+							vant.Toast(response.data.message);
+						}
+					})
+				},
+				getProduct(bean) {
+					var url = "products/" + bean.pid;
+					axios.get(url).then(function(response){
+						vue.products.push(response.data);
+					})
+				},
+				onCheckAll() {
+					//已经全选就让所有未选。未全选就全选
+					if(this.checked) {
+						for(let i=0; i<this.orderItemChecked.length; i++) {
+							this.orderItemChecked[i].checked = false;
+						}
+					} else {
+						for(let i=0; i<this.orderItemChecked.length; i++) {
+							this.orderItemChecked[i].checked = true;
+						}
+					}
+					
+					this.onCalculateTotal();
+				},
+				onCalculateTotal() {
+					this.total = 0;
+					for(let i=0; i<this.orderItemChecked.length; i++) {
+						if(this.orderItemChecked[i].checked)
+							this.total += (this.orderItems[i].number * this.products[i].originalPrice);
+					}
+				},
+				onDeleteOrderItem(id) {
+					vant.Dialog.confirm({
+					  title: '确认',
+					  message: '是否删除？'
+					}).then(() => {
+					  // on confirm
+					  var url = "foreDeleteOrderItem/" + id;
+						axios.delete(url).then(function(response){
+							location.href = "cart";
+						})
+					}).catch(() => {
+					  // on cancel
+					  console.log("删除时出现错误");
+					});
+				},
+				onChangeOrderItem(index) {
+					var url = "foreChangeOrderItem";
+					axios.put(url, vue.orderItems[index]).then(function(response){
+						vue.onCalculateTotal();
+					})
+				}
+			}
+		});
+	</script>
+	
+</body>
+</html>

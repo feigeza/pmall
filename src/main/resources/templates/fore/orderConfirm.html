@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('确认订单')" ></head>
+
+<body>
+	<div id="app">
+	
+		<van-row class="m-header" >
+			<van-col span="3" @click="leftBack">
+				<van-icon name="arrow-left" class="m-header-icon" />
+			</van-col>
+			<van-col>
+				<span>确认订单</span>
+			</van-col>
+		</van-row>
+		
+		<div class="orderConfirm-content">
+			<van-row class="orderConfirm-address" >
+				<van-col span="5">
+					<van-image class="orderConfirm-address-icon" round src="img/site/address.jpg"></van-image>
+				</van-col>
+				<div v-if="showAddress" >
+					<van-col span="17">
+						<p>{{data4Address.receiver}} {{data4Address.mobile}}</p>
+						<p class="orderConfirm-address-text-position">{{data4Address.address}}</p>
+					</van-col>
+					<van-col span="2" class="orderConfirm-address-arrow" @click="toEditAddress">
+						<van-icon name="arrow"></van-icon>
+					</van-col>
+				</div>
+				<div v-else>
+					<van-col class="orderConfirm-address-toFill" span="19" @click="toEditAddress">
+						还未填写地址，点击填写
+					</van-col>
+				</div>
+			</van-row>
+			
+			<van-popup
+				class="orderConfirm-addressEdit"
+				closeable
+				round
+				v-model="showAddressEdit"
+			>
+				<van-form @submit="onSave">
+					<van-field
+					    v-model="data4Address.receiver"
+					    name="receiver"
+					    label="姓名"
+					    placeholder="姓名"
+					    :rules="[{ required: true, message: '请填写姓名' }]"
+					></van-field>
+					<van-field
+					    v-model="data4Address.mobile"
+					    name="mobile"
+					    label="电话"
+					    placeholder="电话"
+					    :rules="[{ required: true, message: '请填写电话' }]"
+					></van-field>
+					<van-field
+					    v-model="data4Address.address"
+					    name="address"
+					    label="地址"
+					    placeholder="地址"
+					    :rules="[{ required: true, message: '请填写地址' }]"
+					></van-field>
+					<van-field
+					    v-model="data4Address.post"
+					    name="post"
+					    label="邮政编码"
+					    placeholder="邮政编码"
+					    :rules="[{ required: true, message: '请填写邮政编码' }]"
+					></van-field>
+					<van-field
+					    v-model="data4Address.userMessage"
+					    name="userMessage"
+					    label="给商家留言"
+					    placeholder="给商家留言，非必填"
+					></van-field>
+					<div style="margin: 16px;">
+					    <van-button round block type="info" native-type="submit">
+					      提交
+					    </van-button>
+					</div>
+				</van-form>
+			</van-popup>
+			
+			<van-row class="orderConfirm-orderItem" v-for="orderItem,index in orderItems">
+				<van-card
+					v-if="products[index]!=undefined"
+					class="orderConfirm-orderItem-card"
+				    :num="orderItem.number"
+				    :price="products[index].originalPrice | formatMoneyFilter"
+				    :thumb="'img/productSingle/' + products[index].firstProductImage.id + '.jpg'"
+				>
+					<div slot="title" style="font-size: 18px; margin-bottom: 8px;">
+						{{products[index].name}}
+					</div>
+				</van-card>
+			</van-row>
+			
+			<van-submit-bar
+				class="orderConfirm-bottom"
+			 	button-text="提交订单"
+			 	@submit="onSubmit"
+			>
+				<van-col class="orderConfirm-bottom-allCount">
+					<span>共{{allCount}}件，</span>
+				</van-col>
+				<van-col class="orderConfirm-bottom-price">
+					<span>
+						合计：
+						<span class="orderConfirm-bottom-price-symbol">￥</span>
+						<span class="orderConfirm-bottom-price-num">{{total | formatMoneyFilter}}</span>
+					</span>
+				</van-col>
+				<van-col span="1"></van-col>
+			</van-submit-bar>
+			
+		</div>
+
+	</div>
+
+	<script>
+		var data4Vue = {
+			showAddress: false,
+			showAddressEdit: false,
+			data4Address: {
+				address: '测试地址',
+				post: '430056',
+				receiver: '测试人',
+				mobile: '12344448888',
+				userMessage: ' '
+			},
+			orderItems: [],
+			products: [],
+			total: 0,
+			allCount: 0
+		}
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted: function(){
+				this.oiid = getUrlParms("oiid");
+				this.getOrderItems();
+			},
+			methods: {
+				leftBack() {
+					goBack();
+				},
+				//确认、提交订单
+				onSubmit() {
+					if(this.showAddress) {
+						var url = "forecreateorder";
+						var order = this.data4Address;
+						axios.post(url,order).then(function(response) {
+							if(0==response.data.code) {
+								//成功，跳转付款页面
+								var result = response.data;
+		                    	var oid = result.data.oid;
+		                    	var total = result.data.total;
+								location.href="pay?oid="+oid+"&total="+total;
+							}
+							else {
+								vant.Toast(response.data.message);
+							}
+						})
+					} else {
+						vant.Dialog.alert({message: '请填写地址'});
+					}
+				},
+				toEditAddress() {
+					this.showAddressEdit = true;
+				},
+				//保存地址
+				onSave() {
+					this.showAddressEdit = false;
+					//显示地址
+					this.showAddress = true;
+				},
+				getOrderItems() {
+					var oiid = getUrlParms("oiid");
+					var url = "foreorderconfirm?oiid=" + oiid;
+					axios.get(url).then(function(response){
+						vue.orderItems = response.data.orderItems;
+						vue.total = response.data.total;
+						vue.allCount = response.data.allCount;
+						for(let i=0; i<vue.orderItems.length; i++) {
+							vue.getProduct(vue.orderItems[i]);
+						}
+					})
+				},
+				getProduct(bean) {
+					var url = "products/" + bean.pid;
+					axios.get(url).then(function(response){
+						vue.products.push(response.data);
+					})
+				}
+			}
+		});
+	</script>
+</body>
+</html>

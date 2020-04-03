@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('注册')" ></head>
+
+<body>
+
+	<div id="app">
+
+		<div v-if="showBody" class="register-body">
+			<van-col span="24" class="register-icon">
+				<van-image round width="8rem" src="img/user/user.jpg"></van-image>
+			</van-col>
+			<van-col span="24" class="register-name">
+				<span>鸽子商城</span>
+			</van-col>
+			<van-form @submit="toRegister">
+			  <van-field
+				v-model="user.name"
+				name="username"
+				label="用户名"
+				placeholder="用户名一旦设置成功，无法修改"
+				:rules="[{ required: true, message: '请填写用户名' }]"
+			  ></van-field>
+			  <van-field
+				v-model="user.password"
+				type="password"
+				name="password"
+				label="密码"
+				placeholder="密码"
+				:rules="[{ required: true, message: '请填写密码' }]"
+			  ></van-field>
+			  <div style="margin: 16px;">
+				<van-button round block type="info" native-type="submit">
+				  注册
+				</van-button>
+			  </div>
+			</van-form>
+			<a href="home" class="just-look">我就想先随便康康</a>
+		</div>
+		<div v-else class="register-success">
+			<van-col span="24" class="register-success-col">
+				<van-image round src="img/user/user.jpg" width="9rem" height="9rem" @click="toHome"></van-image><br>
+				<a href="home">开启您的购物之旅吧</a>
+			</van-col>
+		</div>
+		
+		<van-popup round class="register-success-popup" v-model="showSuccess" @opened="closeShowSuccess">
+			感谢您注册鸽子商城
+		</van-popup>
+
+		<van-popup 
+			round
+			position="top"
+			:style="{ height: '20%' }"
+			class="register-fail-popup"
+			v-model="showFail"
+		>
+			<span>{{message}}</span>
+		</van-popup>
+			
+
+	</div>
+
+	<script>
+		Vue.use(vant.Form)
+		
+		var data4Vue = {
+			showBody: true,
+			showSuccess: false,
+			showFail: false,
+			user: {name: '', password: ''},
+			message: ''
+		};
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {},
+			methods: {
+				toRegister(values) {
+					var url = "foreregister"
+					axios.post(url,this.user).then(function(response) {
+                        var result = response.data;
+                        if(result.code==0){
+                        	vue.showSuccess = true;
+                            vue.showBody = false;
+                        }
+                        else{
+                        	vue.message = result.message;
+                        	vue.showFail = true;
+                        	vue.user = {name: '', password: ''};
+                        }
+                    });
+				},
+				closeShowSuccess() {
+					setTimeout(() => {
+						this.showSuccess = false;
+					}, 2000);
+				},
+				toHome() {
+					location.href = "home";
+				}
+			}
+		});
+	</script>
+
+</body>
+</html>

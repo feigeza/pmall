@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('用户修改')" ></head>
+
+<body>
+
+	<div id="app">
+
+		<van-sticky>
+			<van-row class="m-header">
+				<van-col span="3">
+					<van-icon name="arrow-left" class="m-header-icon" @click="onClickLeft" />
+				</van-col>
+			</van-row>
+		</van-sticky>
+		
+		<van-row class="user-edit-row">
+			<van-col span="24" class="user-edit-col-image">
+				<van-image
+					round
+					width="8rem"
+					height="8rem"
+					src="img/user/user.jpg"
+				/>
+			</van-col>
+			<van-col span="24">
+				<van-field label="用户名" :value="user.name" readonly />
+			</van-col>
+			<van-col span="24">
+				<van-field label="密码" type="password" v-model="user.password" :value="user.password" @change="onEditPassword" />
+			</van-col>
+		</van-row>
+		<van-button round type="danger" size="large" class="user-edit-logout" @click="onForelogout">
+			退出登录
+		</van-button>
+		
+	</div>
+
+	<script>
+		
+		var data4Vue = {
+			uri: "editUser",
+			user: {id: 0, name: '', password: ''}
+		};
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {
+				this.getUser();
+			},
+			methods: {
+				getUser() {
+					var url = this.uri;
+					axios.get(url).then(function(response){
+						vue.user = response.data;
+						vue.user.password = '';
+					});
+				},
+				onClickLeft() {
+					goBack();
+				},
+				onEditPassword() {
+					console.log("密码修改成功");
+				},
+				onForelogout() {
+					var url = "forelogout";
+					axios.get(url);
+					location.href = "user";
+				}
+			}
+		});
+	</script>
+
+</body>
+</html>

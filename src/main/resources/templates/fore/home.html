@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('鸽子商城')" ></head>
+
+<body>
+	<div id="app">
+
+		<van-tabbar v-model="active" @change="onChange" class="tabber-border"> 
+			<van-tabbar-item name="home" icon="wap-home-o">首页</van-tabbar-item>
+			<van-tabbar-item name="category" icon="apps-o">分类</van-tabbar-item>
+			<van-tabbar-item name="cart" icon="shopping-cart-o">购物车</van-tabbar-item>
+			<van-tabbar-item name="user" icon="user-o">我的</van-tabbar-item>
+		</van-tabbar>
+
+		<van-pull-refresh v-model="isLoading" success-text="刷新成功" @refresh="onRefresh">
+
+			<!-- closeable 模式，在右侧显示关闭按钮 -->
+			<van-notice-bar mode="closeable" left-icon="volume-o">
+				江南皮革厂，江南皮革厂倒闭了~~~现在急需328元，打到我的账号，事后必有重谢！！！
+			</van-notice-bar>
+
+			<van-sticky>
+				<van-search v-model="value" shape="round" placeholder="KXXS" @search="onSearch"></van-search>
+			</van-sticky>
+
+			<van-swipe :autoplay="3000">
+				<van-swipe-item v-for="(image, index) in images" :key="index">
+					<img v-lazy="image" width="100%" height="160px" />
+				</van-swipe-item>
+			</van-swipe>
+
+			<van-grid :border="false" :column-num="4" square>
+				<van-grid-item v-for="value,index in 8" :key='index'>
+					<a href="#" @click="goToCategory(index)" class="grid-a">
+						<van-image
+						  round
+						  round
+						  width="56px"
+						  height="56px"
+						  :src="badge.icon[index]"
+						></van-image>
+						<span>{{badge.title[index]}}</span>
+					</a>
+				</van-grid-item>
+			</van-grid>
+
+			<van-row class="product-cards">
+				<van-list v-model="loading" :finished="finished" finished-text="没有更多了" :error.sync="error" error-text="请求失败，点击重新加载"
+				 loading-text="努力加载中..." @load="onLoad">
+					<van-col class="product-cards-col" span="12" v-for="item in list" :key="item.id">
+						<a @click="toProduct(item.id)">
+							<img :src="'img/productSingle/'+item.firstProductImage.id+'.jpg'" width="100%" height="165px" />
+							<span class="item-productName">{{item.name | subStringFilter(0,20)}}</span>
+							<span class="item-productPrice"><span>￥</span>{{item.originalPrice | formatMoneyFilter}}</span>
+						</a>
+					</van-col>
+				</van-list>
+			</van-row>
+
+			<van-col span="24">
+				<div class="bottom4Offset"></div>
+			</van-col>
+
+		</van-pull-refresh>
+	</div>
+
+	<script>
+	Vue.use(vant.Lazyload);
+	Vue.use(vant.Grid).use(vant.GridItem);
+
+	var data4Vue = {
+		uri: 'forehome',
+		active: 'home',
+		value: '',
+		images: [
+			'img/lunbo/1.jpg',
+			'img/lunbo/2.jpg',
+			'img/lunbo/3.jpg',
+			'img/lunbo/4.jpg',
+			'img/lunbo/5.jpg',
+		],
+		badge: {
+			icon: [
+				'img/icon/dianshi.jpg',
+				'img/icon/matong.jpg',
+				'img/icon/shafa.jpg',
+				'img/icon/kongtiao.jpg',
+				'img/icon/dianreshuiqi.jpg',
+				'img/icon/saodijiqiren.jpg',
+				'img/icon/nvbiao.jpg',
+				'img/icon/taiyangjing.jpg'
+			],
+			title: ['电视', '马桶', '沙发', '空调', '电热水器', '扫地机器人', '女表', '太阳镜'],
+		},
+		list: [],
+		error: false,
+		loading: false,
+		finished: false,
+		isLoading: false
+	};
+
+	var vue = new Vue({
+		el: '#app',
+		data: data4Vue,
+		methods: {
+			onChange(index) {
+				location.href= index ;
+				vant.Notify({
+					type: 'primary',
+					message: index
+				});
+			},
+			onSearch(val) {
+				location.href = "search?keyword=" + val;
+			},
+			goToCategory(index) {
+				vant.Toast(index);
+			},
+			toProduct(pid) {
+				location.href = "product?pid=" + pid;
+			},
+			onLoad() {
+				// 异步更新数据
+				var url = this.uri;
+				axios.get(url).then(function(response) {
+                	//console.log(response.data);
+                	vue.list = response.data.list;
+                })
+                
+               	// 加载状态结束
+				this.loading = false;
+
+				// 数据全部加载完成
+				if (this.list.length >= 50) {
+					this.finished = true;
+				}
+			},
+			onRefresh() {
+				//刷新页面
+				location.reload();
+				vant.Toast('刷新成功');
+				this.isLoading = false;
+				
+			}
+		}
+	});
+	</script>
+</body>
+</html>

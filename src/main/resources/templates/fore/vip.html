@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('我的会员')" ></head>
+
+<body>
+	
+	<div id="app">
+		
+		<van-nav-bar title="我的会员">
+			<van-icon name="arrow-left" slot="left" color="#000000" size="20px" @click="onClickLeft" />
+		</van-nav-bar>
+		
+		<van-row class="vip-content" v-if="showVip">
+			会员到期时间：2020-4-3
+		</van-row>
+		<van-row class="vip-content" v-else>
+			您还不是会员 <a href="">点击成为会员</a>
+		</van-row>
+		
+	</div>
+	
+	<script>
+		var data4Vue = {
+			showVip: false
+		};
+		
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {
+			},
+			methods: {
+				onClickLeft() {
+					goBack();
+				}
+			}
+		});
+	</script>
+	
+</body>
+</html>

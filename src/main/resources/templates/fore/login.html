@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('确认订单')" ></head>
+
+<body>
+
+	<div id="app">
+
+		<div>
+			<van-icon name="cross" class="login-head-back" @click="onBack"></van-icon>
+		</div>
+
+		<div class="register-body">
+			<van-col span="24" class="register-icon">
+				<van-image round width="8rem" src="img/user/user.jpg"></van-image>
+			</van-col>
+			<van-col span="24" class="register-name">
+				<span>鸽子商城</span>
+			</van-col>
+			<van-form @submit="toLogin">
+			  <van-field
+				v-model="user.name"
+				name="name"
+				label="用户名"
+				placeholder="请输入用户名"
+				:rules="[{ required: true, message: '请填写用户名' }]"
+			  ></van-field>
+			  <van-field
+				v-model="user.password"
+				type="password"
+				name="password"
+				label="密码"
+				placeholder="请输入密码"
+				:rules="[{ required: true, message: '请填写密码' }]"
+			  ></van-field>
+			  <div style="margin: 16px;">
+				<van-button round block type="info" native-type="submit">
+				  登录
+				</van-button>
+			  </div>
+			</van-form>
+		</div>
+		
+		<van-popup round class="register-success-popup" v-model="showSuccess">
+			登录成功
+		</van-popup>
+		
+		<van-popup 
+			round
+			position="top"
+			:style="{ height: '20%' }"
+			class="register-fail-popup"
+			v-model="showFail"
+		>
+			<span>{{message}}</span>
+		</van-popup>
+		
+	</div>
+
+	<script>
+		Vue.use(vant.Form)
+		
+		var data4Vue = {
+			showSuccess: false,
+			showFail: false,
+			message: '',
+			user: {name: '', password: ''}
+		};
+
+		var vue = new Vue({
+			el: '#app',
+			data: data4Vue,
+			mounted() {},
+			methods: {
+				toLogin(values) {
+					var url = "forelogin";
+					axios.post(url, this.user).then(function(response){
+						var result = response.data;
+                        if(result.code==0){
+                        	vue.showSuccess = true;
+                        	//location.href = "home";
+                        	goBack();
+                        }
+                        else{
+                        	vue.message = result.message;
+                        	vue.showFail = true;
+                        	vue.user = {name: '', password: ''};
+                        }
+					});
+				},
+				onBack() {
+					goBack();
+				}
+			}
+		});
+	</script>
+
+</body>
+</html>

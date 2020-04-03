@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('分类页')" ></head>
+
+<body>
+
+<div id="app">
+	
+	<van-tabbar v-model="active" @change="onChange" class="tabber-border">
+		<van-tabbar-item name="home" icon="wap-home-o">首页</van-tabbar-item>
+		<van-tabbar-item name="category" icon="apps-o">分类</van-tabbar-item>
+		<van-tabbar-item name="cart" icon="shopping-cart-o">购物车</van-tabbar-item>
+		<van-tabbar-item name="user" icon="user-o">我的</van-tabbar-item>
+	</van-tabbar>
+	
+	<van-sticky>
+		<van-row class="top-row">
+			<van-col span="3">
+				<van-icon name="arrow-left" class="m-header-icon" @click="leftBack" />
+			</van-col>
+			<van-col span="21">
+				<van-search v-model="value" shape="round" placeholder="KXXS" @search="onSearch"></van-search>
+			</van-col>
+		</van-row>
+	</van-sticky>
+	
+	<van-tabs v-model="activeTab" sticky :offset-top="tabOffsetTop" @change="changeTab">
+		<van-tab v-for="c in categories" :key="c.id" :title="c.name">
+			<van-row>
+				<img :src="'img/category/'+c.id+'.jpg'" width="100%" />
+				<van-list v-model="loading" :finished="finished" finished-text="没有更多了" :error.sync="error" error-text="请求失败，点击重新加载"
+				 loading-text="努力加载中..." @load="onLoad">
+					<van-col span="24" v-for="p in products" :key="p.id">
+						<van-card class="search-show-card" :num="p.stock" :price="p.originalPrice | formatMoneyFilter" :thumb="'img/productSingle/'+p.firstProductImage.id+'.jpg'" @click="toProduct(p.id)" >
+							<div slot="title" class="card-name">
+								{{p.name}}
+							</div>
+							<div slot="desc" class="card-subTitle">
+								{{p.subTitle}}
+							</div>
+						</van-card>
+					</van-col>
+				</van-list>
+			</van-row>
+		</van-tab>
+	</van-tabs>
+	
+	<van-col span="24">
+		<div class="bottom4Offset"></div>
+	</van-col>
+	
+</div>
+	
+<script>
+	var data4Vue = {
+		active: 'category',
+		value: '',
+		activeTab: 0,
+		tabOffsetTop: 53,
+		error: false,
+		finished: false,
+		loading: false,
+		cid: 0,
+		categories: [],
+		products: []
+	};
+	
+	var vue = new Vue({
+		el: '#app',
+		data: data4Vue,
+		mounted: function(){
+			this.get();
+		},
+		methods: {
+			get() {
+				var url = "categories?size=20"; //显示前20条分类信息
+				axios.get(url).then(function(response) {
+					//console.log(response.data);
+					vue.categories = response.data.list;
+					vue.cid = vue.categories[0].id;
+				})
+			},
+			onLoad() {
+				// 异步更新数据
+				var url = "categories/" + this.cid + "/products?size=50";
+				axios.get(url).then(function(response) {
+					//console.log(response.data);
+					vue.products = response.data.list;
+				})
+
+				// 加载状态结束
+				this.loading = false;
+
+				// 数据全部加载完成
+				//本来想大于50的，但是数据量不够，还是5吧。
+				if (this.products.length >= 5) {
+					this.finished = true;
+				}
+			},
+			changeTab(index) {
+				this.cid = this.categories[index].id;
+				this.onLoad();
+			},
+			onChange(index) {
+				location.href= index ;
+				vant.Notify({
+					type: 'primary',
+					message: index
+				});
+				console.log(this.activeName);
+			},
+			onSearch(val) {
+				location.href = "search?keyword=" + val;
+			},
+			toProduct(pid) {
+				location.href = "product?pid=" + pid;
+				/* vant.Notify({
+					type: 'primary',
+					message: pid
+				}); */
+			},
+			leftBack() {
+				goBack();
+			}
+		}
+	});
+</script>
+	
+</body>
+</html>

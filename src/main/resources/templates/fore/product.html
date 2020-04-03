@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="include/fore/foreHeader::html('产品页')" ></head>
+
+<body class="productBody">
+  <div id="app">
+	<div class="goods">
+		<van-sticky>
+			<van-row class="m-header">
+				<van-col span="3">
+					<van-icon name="arrow-left" class="m-header-icon" @click="leftBack" />
+				</van-col>
+				<van-col span="21">
+					<van-search v-model="value" shape="round" placeholder="搜索" @search="onSearch"></van-search>
+				</van-col>
+			</van-row>
+		</van-sticky>
+
+		<div v-if="showProductInfo">
+		<van-tabs v-model="active" scrollspy sticky :offset-top="tabOffsetTop">
+			<van-tab title="商品">
+				<van-swipe class="goods-swipe" :autoplay="3000">
+					<van-swipe-item v-for="image in singleProductImages" :key="image.id">
+						<img :src="'img/productSingle/'+image.id+'.jpg'" width="400px" height="400px">
+					</van-swipe-item>
+				</van-swipe>
+				<van-cell-group>
+					<van-cell>
+						<div class="goods-name">{{ bean.name }}</div>
+						<div class="goods-subTitle">{{ bean.subTitle }}</div>
+						<van-col span="19" class="goods-price">
+							￥{{bean.originalPrice | formatMoneyFilter}}
+						</van-col>
+						<!-- <van-col span="5" class="goods-express">
+							剩余：{{ bean.stock }}
+						</van-col> -->
+					</van-cell>
+				</van-cell-group>
+			</van-tab>
+			<van-tab title="评价">
+			<van-divider>评价</van-divider>
+			<div v-if="showReview">
+				<van-row class="product-review">
+					<van-row class="product-review-head">
+						<van-col span="18">
+							<span>评价</span><span>({{data4review.count}})</span>
+						</van-col>
+						<van-col class="product-review-head-toAllContent" span="6" @click="onChangeReview">
+							<span>查看全部</span><van-icon class="product-review-head-icon" name="arrow" size="21px"></van-icon>
+						</van-col>
+					</van-row>
+					<van-col class="product-review-user-icon" span="4">
+						<van-image
+							round
+							width="50px"
+							height="50px"
+							src="img/user/user.jpg"
+						></van-image>
+					</van-col>
+					<van-col class="product-review-user-name" span="20">
+						<span>{{data4review.user.name}}</span>
+					</van-col>
+					<van-col span="24" class="product-review-content">
+						<p style="width: 100%;">
+							{{data4review.review.content | subStringFilter(0,150)}}
+						</p>
+					</van-col>
+				</van-row>
+			</div>
+			<div v-else class="review-empty">
+				<span>暂无评价~</span>
+			</div>
+			</van-tab>
+			<van-tab title="参数">
+				<van-divider>产品参数</van-divider>
+				<div>
+					<span v-for="pv,index in propertyValues" >
+						<van-row v-if="pv.value!=undefined" class="product-property-row">
+							<van-col span="12" class="product-property-col-name">
+								{{properties[index].name}} : 
+							</van-col>
+							<van-col span="12">
+								 {{pv.value | subStringFilter(0,10)}}
+							</van-span>
+						</van-row>
+						<span v-else></span>
+					</span>
+				</div>
+			</van-tab>
+			<van-tab title="详情">
+				<van-divider>详情</van-divider>
+				<img v-for="pi in detailProductImages" :src="'img/productDetail/'+pi.id+'.jpg'" width="100%" />
+			</van-tab>
+		</van-tabs>
+		</div>
+		<div v-if="showProductReview">
+			<van-row class="product-review-head">
+				筛选
+			</van-row>
+			<van-row class="product-review" v-for="review,index in data4review.reviews">
+				<van-col class="product-review-user-icon" span="4">
+					<van-image
+						round
+						width="50px"
+						height="50px"
+						src="img/user/user.jpg"
+					></van-image>
+				</van-col>
+				<van-col class="product-review-user-name" span="10">
+					<span>{{data4review.users[index].name}}</span>
+				</van-col>
+				<van-col class="product-review-tag" span="10">
+					<van-tag v-if="1==data4review.reviewStatus[index].sticky" round type="danger">置顶</van-tag>
+					<van-tag v-if="1==data4review.reviewStatus[index].recommend" round type="primary">推荐</van-tag>
+					<van-tag v-if="1==data4review.reviewStatus[index].essence" round type="success">精华</van-tag>
+				</van-col>
+				<van-col span="24" class="product-review-content">
+					<p style="width: 100%;">
+						{{review.content}}
+					</p>
+				</van-col>
+			</van-row>
+		</div>
+
+		<van-goods-action>
+			<van-goods-action-icon icon="chat-o" @click="showChat">
+				客服
+			</van-goods-action-icon>
+			<van-goods-action-icon icon="cart-o" @click="toCart">
+				购物车
+			</van-goods-action-icon>
+			<van-goods-action-button type="warning" @click="addCart">
+				加入购物车
+			</van-goods-action-button>
+			<van-goods-action-button type="danger" @click="buy">
+				立即购买
+			</van-goods-action-button>
+		</van-goods-action>
+	</div>
+	
+	<van-popup
+		  v-model="showSku"
+		  closeable
+		  round
+		  position="bottom"
+		  :style="{ height: '40%' }"
+		>
+			<div class="product-sku">
+				<van-row class="product-sku-title">
+					<van-col span="6">
+						<van-image radius="5px" class="product-sku-title-icon" :src="'img/productSingle/' + bean.firstProductImage.id + '.jpg'"></van-image>
+					</van-col>
+					<van-col span="18">
+						<p class="product-sku-title-price">￥{{ bean.originalPrice | formatMoneyFilter }}</p>
+						<p class="product-sku-title-stock">库存{{bean.stock}}件</p>
+					</van-col>
+				</van-row>
+				<van-row class="product-sku-content">
+					<van-col span="17">
+						购买数量
+					</van-col>
+					<van-col span="7">
+						<van-stepper v-model="number" :max="bean.stock"></van-stepper>
+					</van-col>
+					<van-col span="24">
+						<van-divider></van-divider>
+					</van-col>
+				</van-row>
+			</div>
+			<div class="product-sku-bottom">
+				<van-col span="24" class="product-sku-bottom-button">
+					<van-button size="large" round color="linear-gradient(to right, #FD5632, #F01325)" @click="onConfirm">确定</van-button>
+				</van-col>
+			</div>
+		</van-popup>
+	
+  </div>
+
+  <script>
+	//初始化 Vue 实例
+	
+	var data4Vue = {
+		value: '',
+		active: 0,
+		tabOffsetTop: 53,
+		pid: 0,
+		bean: {firstProductImage: {id: 0}},
+		singleProductImages: [],
+        detailProductImages: [],
+        properties: [],
+        propertyValues: [],
+		showSku: false,
+		number: 1,
+		buyOrCart: '',
+		oiid: 0,
+		showReview: true,
+		data4review: {
+			review: '',
+			count: 0,
+			user: '',
+			reviews: [],
+			users: [],
+			reviewStatus: []
+		},
+		showProductReview: false,
+		showProductInfo: true
+	};
+	
+	var vue = new Vue({
+		el: '#app',
+		data: data4Vue,
+		mounted: function(){
+			this.get();
+			this.listSingles();
+			this.listDetails();
+			this.listProperties();
+			this.listPropertyValues();
+			this.listReviews();
+		},
+		methods: {
+			get() {
+				this.pid = getUrlParms("pid");
+				var url = "products/" + this.pid;
+				axios.get(url).then(function(response) {
+					//console.log(response.data);
+					vue.bean = response.data;
+				})
+			},
+			listSingles() {
+                var url =  "products/"+this.pid+"/productImages?type=single";
+                axios.get(url).then(function(response) {
+                    vue.singleProductImages = response.data;
+                });
+            },
+            listDetails() {
+                var url =  "products/"+this.pid+"/productImages?type=detail";
+                axios.get(url).then(function(response) {
+                    vue.detailProductImages = response.data;
+                });
+            },
+            listPropertyValues() {
+                var url = "products/"+this.pid+"/propertyValues";
+                axios.get(url).then(function(response) {
+                    vue.propertyValues = response.data;
+                    //console.log(vue.propertyValues);
+                });
+            },
+            listProperties() {
+            	var url = "products/"+this.pid+"/properties";
+            	axios.get(url).then(function(response){
+                	vue.properties = response.data;
+                	//console.log(vue.properties);
+            	});
+            },
+            listReviews() {
+            	var url = "forereview?pid="+this.pid;
+            	axios.get(url).then(function(response){
+            		if(1==response.data.code){
+            			vue.showReview = false;
+            		}
+            		else {
+                		vue.data4review.review = response.data.firstReview;
+                		vue.data4review.count = response.data.count;
+                		vue.data4review.user = response.data.user;
+                		vue.data4review.reviews = response.data.reviews;
+                		vue.data4review.users = response.data.users;
+                		vue.data4review.reviewStatus = response.data.reviewStatus;
+            		}
+            	})
+            },
+			onSearch(val) {
+            	location.href = "search?keyword=" + val;
+			},
+			leftBack() {
+				if(this.showProductInfo)
+					goBack();
+				else
+					this.onChangeReview();
+			},
+			showChat() {
+				location.href = "chat";
+			},
+			toCart() {
+				location.href = "cart";
+			},
+			addCart() {
+				this.showSku = true;
+				this.buyOrCart = 'cart';
+			},
+			buy() {
+				this.showSku = true;
+				this.buyOrCart = 'buy';
+			},
+			onChangeReview() {
+				this.showProductReview = !this.showProductReview;
+				this.showProductInfo = !this.showProductInfo;
+				document.body.scrollTop = document.documentElement.scrollTop = 0;
+			},
+			/* 
+			点击弹窗确认按钮后。如果是直接购买就跳转到订单确认页面（orderConfirm）
+			如果是加入到购物车就提示。
+			通过axios添加订单项，并带回oiid作为参数一并传到orderConfirm里。 
+			*/
+			onConfirm() {
+				
+				var url = "forechecklogin";
+				axios.get(url).then(function(response){
+					if(0==response.data.code) {
+						var url = "forebuyone?pid=" + vue.pid + "&number=" + vue.number;
+						console.log('url',url);
+						axios.get(url).then(function(response){
+							vue.oiid = response.data;
+							
+							if('cart'==vue.buyOrCart){
+								vant.Toast('添加成功，在购物车等着您哦~');
+								vue.showSku = false;
+							}else if('buy'==vue.buyOrCart){
+								location.href = "orderConfirm?oiid=" + vue.oiid;
+							}
+							
+		            	});
+					}
+					else {
+						vant.Notify({
+							type: 'danger',
+							message: response.data.message
+						});
+						location.href = "login";
+					}
+				})
+			}
+		}
+	});
+  </script>
+</body>
+</html>
