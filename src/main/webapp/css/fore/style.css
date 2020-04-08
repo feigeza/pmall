@@ -126,6 +126,7 @@
 .cart-empty {
 	text-align: center;
 	margin-top: 45%;
+	text-decoration: underline;
 }
 
 .cart-empty a {
@@ -462,11 +463,18 @@ body.productBody {
 	margin-top: 10px;
 	border: 1px solid #F2F2F2;
 	border-radius: 10px;
+	background-color: #F2F2F2;
 }
 
 .orderConfirm-orderItem-card {
 	border-radius: 10px;
 	background-color: #F2F2F2;
+}
+
+.orderConfirm-orderItem-col {
+	height: 44px;
+	line-height: 44px;
+	
 }
 
 .orderConfirm-address-toFill {
@@ -501,6 +509,11 @@ body.productBody {
 
 .orderConfirm-bottom-price-num {
 	color: #FF4444;
+}
+
+.orderConfirm-showReduce {
+	margin-top: 10%;
+	
 }
 
 .pay-row {
@@ -606,6 +619,16 @@ body.reward-body {
 	height: 50px;
 	line-height: 50px;
 	border-top: 2px solid #f8f8f8;
+}
+
+.reward-details-content-add {
+	text-align: right;
+	color: #00A3E8;
+}
+
+.reward-details-content-use {
+	text-align: right;
+	color: #FF4444;
 }
 
 .vip-content {

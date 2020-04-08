@@ -954,6 +954,186 @@ public class OrderExample {
             addCriterion("status not between", value1, value2, "status");
             return (Criteria) this;
         }
+
+        public Criteria andTotalIsNull() {
+            addCriterion("total is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIsNotNull() {
+            addCriterion("total is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalEqualTo(Float value) {
+            addCriterion("total =", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotEqualTo(Float value) {
+            addCriterion("total <>", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalGreaterThan(Float value) {
+            addCriterion("total >", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalGreaterThanOrEqualTo(Float value) {
+            addCriterion("total >=", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLessThan(Float value) {
+            addCriterion("total <", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLessThanOrEqualTo(Float value) {
+            addCriterion("total <=", value, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalIn(List<Float> values) {
+            addCriterion("total in", values, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotIn(List<Float> values) {
+            addCriterion("total not in", values, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBetween(Float value1, Float value2) {
+            addCriterion("total between", value1, value2, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalNotBetween(Float value1, Float value2) {
+            addCriterion("total not between", value1, value2, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageIsNull() {
+            addCriterion("postage is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageIsNotNull() {
+            addCriterion("postage is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageEqualTo(Float value) {
+            addCriterion("postage =", value, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageNotEqualTo(Float value) {
+            addCriterion("postage <>", value, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageGreaterThan(Float value) {
+            addCriterion("postage >", value, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageGreaterThanOrEqualTo(Float value) {
+            addCriterion("postage >=", value, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageLessThan(Float value) {
+            addCriterion("postage <", value, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageLessThanOrEqualTo(Float value) {
+            addCriterion("postage <=", value, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageIn(List<Float> values) {
+            addCriterion("postage in", values, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageNotIn(List<Float> values) {
+            addCriterion("postage not in", values, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageBetween(Float value1, Float value2) {
+            addCriterion("postage between", value1, value2, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andPostageNotBetween(Float value1, Float value2) {
+            addCriterion("postage not between", value1, value2, "postage");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceIsNull() {
+            addCriterion("reduce is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceIsNotNull() {
+            addCriterion("reduce is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceEqualTo(Float value) {
+            addCriterion("reduce =", value, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceNotEqualTo(Float value) {
+            addCriterion("reduce <>", value, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceGreaterThan(Float value) {
+            addCriterion("reduce >", value, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceGreaterThanOrEqualTo(Float value) {
+            addCriterion("reduce >=", value, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceLessThan(Float value) {
+            addCriterion("reduce <", value, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceLessThanOrEqualTo(Float value) {
+            addCriterion("reduce <=", value, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceIn(List<Float> values) {
+            addCriterion("reduce in", values, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceNotIn(List<Float> values) {
+            addCriterion("reduce not in", values, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceBetween(Float value1, Float value2) {
+            addCriterion("reduce between", value1, value2, "reduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andReduceNotBetween(Float value1, Float value2) {
+            addCriterion("reduce not between", value1, value2, "reduce");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

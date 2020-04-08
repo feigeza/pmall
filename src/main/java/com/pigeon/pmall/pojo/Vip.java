@@ -9,6 +9,8 @@ public class Vip {
 
     private Date expireDate;
 
+    private Date createDate;
+
     public Integer getId() {
         return id;
     }
@@ -31,5 +33,13 @@ public class Vip {
 
     public void setExpireDate(Date expireDate) {
         this.expireDate = expireDate;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
     }
 }

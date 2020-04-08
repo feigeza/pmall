@@ -15,12 +15,14 @@
 			<van-col span="24">当前鸽子币 {{totalNow}} 个</van-col>
 		</van-row>
 		
-		<div class="reward-details">
+		<div class="reward-details" v-if="null!=rewards">
 			<div class="reward-details-head">鸽子币收支明细</div>
-			<div class="reward-details-content">
+			<div class="reward-details-content" v-for="reward,index in rewards">
 				<van-col span="1"></van-col>
-				<van-col span="14">2018-10-26 12:43:09</van-col>
-				<van-col span="8" style="text-align: right;">+10</van-col>
+				<van-col span="14">{{reward.createDate | formatDateFilter}}</van-col>
+				<van-col span="8" class="reward-details-content-add" v-if="index==rewards.length-1">+{{reward.total}}</van-col>
+				<van-col span="8" class="reward-details-content-add" v-else-if="'add'==reward.operation">+{{reward.total - rewards[index+1].total}}</van-col>
+				<van-col span="8" class="reward-details-content-use" v-else-if="'use'==reward.operation">-{{rewards[index+1].total - reward.total}}</van-col>
 				<van-col span="1"></van-col>
 			</div>
 		</div>
@@ -30,17 +32,30 @@
 	
 	<script>
 		var data4Vue = {
-			totalNow: 100
+			totalNow: 100,
+			rewards: []
 		};
 		
 		var vue = new Vue({
 			el: '#app',
 			data: data4Vue,
 			mounted() {
+				this.list();
 			},
 			methods: {
 				onClickLeft() {
 					goBack();
+				},
+				list() {
+					var url = "forereward";
+					axios.get(url).then(function(response){
+						vue.rewards = response.data;
+						if(0==vue.rewards.length) {
+							vue.totalNow = 0;
+						}else {
+							vue.totalNow = vue.rewards[0].total;
+						}
+					})
 				}
 			}
 		});

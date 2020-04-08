@@ -15,6 +15,9 @@
     <result column="confirmDate" jdbcType="TIMESTAMP" property="confirmDate" />
     <result column="uid" jdbcType="INTEGER" property="uid" />
     <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="total" jdbcType="REAL" property="total" />
+    <result column="postage" jdbcType="REAL" property="postage" />
+    <result column="reduce" jdbcType="REAL" property="reduce" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -47,7 +50,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, orderCode, address, post, receiver, mobile, userMessage, createDate, payDate, 
-    deliveryDate, confirmDate, uid, status
+    deliveryDate, confirmDate, uid, status, total, postage, reduce
   </sql>
   <select id="selectByExample" parameterType="com.pigeon.pmall.pojo.OrderExample" resultMap="BaseResultMap">
     select
@@ -78,13 +81,13 @@
     insert into order_ (orderCode, address, post, 
       receiver, mobile, userMessage, 
       createDate, payDate, deliveryDate, 
-      confirmDate, uid, status
-      )
+      confirmDate, uid, status, 
+      total, postage, reduce)
     values (#{orderCode,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{post,jdbcType=VARCHAR}, 
       #{receiver,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{userMessage,jdbcType=VARCHAR}, 
       #{createDate,jdbcType=TIMESTAMP}, #{payDate,jdbcType=TIMESTAMP}, #{deliveryDate,jdbcType=TIMESTAMP}, 
-      #{confirmDate,jdbcType=TIMESTAMP}, #{uid,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}
-      )
+      #{confirmDate,jdbcType=TIMESTAMP}, #{uid,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, 
+      #{total,jdbcType=REAL}, #{postage,jdbcType=REAL}, #{reduce,jdbcType=REAL})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.pigeon.pmall.pojo.Order" useGeneratedKeys="true">
     insert into order_
@@ -125,6 +128,15 @@
       <if test="status != null">
         status,
       </if>
+      <if test="total != null">
+        total,
+      </if>
+      <if test="postage != null">
+        postage,
+      </if>
+      <if test="reduce != null">
+        reduce,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="orderCode != null">
@@ -162,6 +174,15 @@
       </if>
       <if test="status != null">
         #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="total != null">
+        #{total,jdbcType=REAL},
+      </if>
+      <if test="postage != null">
+        #{postage,jdbcType=REAL},
+      </if>
+      <if test="reduce != null">
+        #{reduce,jdbcType=REAL},
       </if>
     </trim>
   </insert>
@@ -204,6 +225,15 @@
       <if test="status != null">
         status = #{status,jdbcType=VARCHAR},
       </if>
+      <if test="total != null">
+        total = #{total,jdbcType=REAL},
+      </if>
+      <if test="postage != null">
+        postage = #{postage,jdbcType=REAL},
+      </if>
+      <if test="reduce != null">
+        reduce = #{reduce,jdbcType=REAL},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -220,7 +250,10 @@
       deliveryDate = #{deliveryDate,jdbcType=TIMESTAMP},
       confirmDate = #{confirmDate,jdbcType=TIMESTAMP},
       uid = #{uid,jdbcType=INTEGER},
-      status = #{status,jdbcType=VARCHAR}
+      status = #{status,jdbcType=VARCHAR},
+      total = #{total,jdbcType=REAL},
+      postage = #{postage,jdbcType=REAL},
+      reduce = #{reduce,jdbcType=REAL}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>

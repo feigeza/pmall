@@ -11,6 +11,8 @@ public class OrderItem {
 
     private Integer number;
 
+    private Float subTotal;
+
     public Integer getId() {
         return id;
     }
@@ -51,9 +53,11 @@ public class OrderItem {
         this.number = number;
     }
 
-	@Override
-	public String toString() {
-		return "OrderItem [id=" + id + ", pid=" + pid + ", oid=" + oid + ", uid=" + uid + ", number=" + number + "]";
-	}
-    
+    public Float getSubTotal() {
+        return subTotal;
+    }
+
+    public void setSubTotal(Float subTotal) {
+        this.subTotal = subTotal;
+    }
 }

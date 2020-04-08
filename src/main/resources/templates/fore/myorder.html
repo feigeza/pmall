@@ -38,10 +38,13 @@
 						</van-card>
 						<div class="myorder-orderItem-bottom">
 							<van-button size="mini" round type="danger" @click="onDeleteOrder(order.id)">删除</van-button>
-							<van-button v-if="activeName == 'waitPay'" size="mini" round plain type="danger" @click="toPay(order.id,totals[index1])">去付款</van-button>
+							<van-button v-if="activeName == 'waitPay'" size="mini" round plain type="danger" @click="toPay(order.id,order.total)">去付款</van-button>
 							<van-button v-if="activeName == 'waitConfirm'" size="mini" round plain type="primary" @click="toRecieve(order.id)">确认收货</van-button>
 							<van-button v-if="activeName == 'waitReview'" size="mini" round plain type="primary" @click="toReview(order.id)">去评价</van-button>
-							<span style="float: right;">共{{allCounts[index1]}}件商品，合计:￥<span class="myorder-orderItem-bottom-price">{{totals[index1]}}</span></span>
+							<span style="float: right;">
+								共{{allCounts[index1]}}件商品，合计:￥<span class="myorder-orderItem-bottom-price">{{order.total}}</span>
+								(邮费￥{{order.postage}} 已减￥{{order.reduce}})
+							</span>
 						</div>
 					</van-row>
 				</div>
@@ -67,7 +70,6 @@
 			orders: [],
 			orderItems: [],
 			products: [],
-			totals: [],
 			allCounts: []
 		}
 
@@ -91,7 +93,6 @@
 						vue.orders = response.data.orders;
 						vue.orderItems = response.data.orderItems;
 						vue.products = response.data.products;
-						vue.totals = response.data.totals;
 						vue.allCounts = response.data.allCounts;
 					})
 				},

@@ -5,6 +5,7 @@
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="uid" jdbcType="INTEGER" property="uid" />
     <result column="expireDate" jdbcType="TIMESTAMP" property="expireDate" />
+    <result column="createDate" jdbcType="TIMESTAMP" property="createDate" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -36,7 +37,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, uid, expireDate
+    id, uid, expireDate, createDate
   </sql>
   <select id="selectByExample" parameterType="com.pigeon.pmall.pojo.VipExample" resultMap="BaseResultMap">
     select
@@ -64,8 +65,10 @@
     where id = #{id,jdbcType=INTEGER}
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.pigeon.pmall.pojo.Vip" useGeneratedKeys="true">
-    insert into vip (uid, expireDate)
-    values (#{uid,jdbcType=INTEGER}, #{expireDate,jdbcType=TIMESTAMP})
+    insert into vip (uid, expireDate, createDate
+      )
+    values (#{uid,jdbcType=INTEGER}, #{expireDate,jdbcType=TIMESTAMP}, #{createDate,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.pigeon.pmall.pojo.Vip" useGeneratedKeys="true">
     insert into vip
@@ -76,6 +79,9 @@
       <if test="expireDate != null">
         expireDate,
       </if>
+      <if test="createDate != null">
+        createDate,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="uid != null">
@@ -83,6 +89,9 @@
       </if>
       <if test="expireDate != null">
         #{expireDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -95,13 +104,17 @@
       <if test="expireDate != null">
         expireDate = #{expireDate,jdbcType=TIMESTAMP},
       </if>
+      <if test="createDate != null">
+        createDate = #{createDate,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.pigeon.pmall.pojo.Vip">
     update vip
     set uid = #{uid,jdbcType=INTEGER},
-      expireDate = #{expireDate,jdbcType=TIMESTAMP}
+      expireDate = #{expireDate,jdbcType=TIMESTAMP},
+      createDate = #{createDate,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>

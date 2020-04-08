@@ -4,6 +4,9 @@ import com.pigeon.pmall.pojo.Reward;
 import com.pigeon.pmall.pojo.RewardExample;
 import java.util.List;
 
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
 public interface RewardMapper {
     int deleteByPrimaryKey(Integer id);
 

@@ -31,13 +31,21 @@ public class Order {
 
     private String status;
     
+    private Float total;
+    
+    private Float postage;
+
+    private Float reduce;
+    
     /**
      * 非数据库字段
      */
-    private float total;//总计金额
-    
     private int totalNumber;//总计数量
     
+    /**
+     * 将数据库里的status，转换成中文。
+     * @return
+     */
     public String getStatusDesc(){
         String desc ="未知";
         switch(status){
@@ -64,14 +72,6 @@ public class Order {
         }
         return desc;
     }
-
-    public float getTotal() {
-		return total;
-	}
-
-	public void setTotal(float total) {
-		this.total = total;
-	}
 
 	public int getTotalNumber() {
 		return totalNumber;
@@ -183,6 +183,30 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
+    }
+
+    public Float getTotal() {
+        return total;
+    }
+
+    public void setTotal(Float total) {
+        this.total = total;
+    }
+
+    public Float getPostage() {
+        return postage;
+    }
+
+    public void setPostage(Float postage) {
+        this.postage = postage;
+    }
+
+    public Float getReduce() {
+        return reduce;
+    }
+
+    public void setReduce(Float reduce) {
+        this.reduce = reduce;
     }
 
 	@Override

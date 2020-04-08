@@ -28,6 +28,7 @@ import com.pigeon.pmall.pojo.OrderItem;
 import com.pigeon.pmall.pojo.Product;
 import com.pigeon.pmall.pojo.Review;
 import com.pigeon.pmall.pojo.ReviewStatus;
+import com.pigeon.pmall.pojo.Reward;
 import com.pigeon.pmall.pojo.User;
 import com.pigeon.pmall.service.CategoryService;
 import com.pigeon.pmall.service.OrderItemService;
@@ -36,6 +37,7 @@ import com.pigeon.pmall.service.ProductImageService;
 import com.pigeon.pmall.service.ProductService;
 import com.pigeon.pmall.service.ReviewService;
 import com.pigeon.pmall.service.ReviewStatusService;
+import com.pigeon.pmall.service.RewardService;
 import com.pigeon.pmall.service.UserService;
 import com.pigeon.pmall.util.Result;
 
@@ -63,6 +65,8 @@ public class ForeRESTController {
 	ReviewService reviewService;
 	@Autowired
 	ReviewStatusService reviewStatusService;
+	@Autowired
+	RewardService rewardService;
 	
 	@GetMapping("/forehome")
 	public PageInfo<Product> home(@RequestParam(value="start", defaultValue="1")int start, @RequestParam(value="size", defaultValue="50")int size) {
@@ -212,6 +216,7 @@ public class ForeRESTController {
 	 * 这里是确认订单（OrderConfirm）页面，初始化数据访问的。 
 	 * 根据从页面传来的oiid的数组，来获取相应的OrderItem订单项。
 	 * 返回一个Map，其中有所有的订单项OrderItems，还有总计total。
+	 * 邮费postage（判断是否为会员，会员免邮费）
 	 * 
 	 * 将查出的OrderItem放入session的"orderItems"参数中，以便后面创建订单Order时使用。
 	 * 
@@ -239,6 +244,11 @@ public class ForeRESTController {
 		map.put("orderItems", orderItems);
 		map.put("total", total);
 		map.put("allCount", allCount);
+		
+		//添加邮费
+		//判断是否为会员，会员则免邮费
+		if(true) {}
+		map.put("postage", 12);
 		
 		return map;
 	}
@@ -297,7 +307,7 @@ public class ForeRESTController {
 		
 		float total = orderService.add(order, orderItems);
 		Map<String,Object> map = new HashMap<String,Object>();
-		map.put("oid", order.getId());
+		map.put("order", order);
 		map.put("total", total);
 		
 		return Result.success(map);
@@ -305,15 +315,32 @@ public class ForeRESTController {
 	
 	/**
 	 * 付款成功，更改状态待发货。
+	 * 添加积分。
 	 * @param oid
 	 * @return
 	 */
 	@GetMapping("forepayed")
-	public Object forepayed(int oid) {
+	public Object forepayed(int oid, HttpSession session) {
+		//更改订单状态。
 		Order order = orderService.get(oid);
 		order.setStatus(OrderService.WAITDELIVERY);
-		order.setPayDate(new Date());
+		Date date = new Date();
+		order.setPayDate(date);
 		orderService.update(order);
+		//增加积分（向下取整）
+		Reward reward = new Reward();
+		User user = (User)session.getAttribute("user");
+		reward.setUid(user.getId());
+		reward.setOperation(RewardService.ADD);
+		//计算最新的积分数量
+		Float total = (float)Math.floor(order.getTotal());
+		List<Reward> rewards = rewardService.list(user.getId());
+		if(!rewards.isEmpty()) {
+			total += rewards.get(0).getTotal();
+		}
+		reward.setTotal(total);
+		reward.setCreateDate(date);
+		rewardService.add(reward);
 		return order;
 	}
 	
@@ -333,36 +360,27 @@ public class ForeRESTController {
 		List<Order> orders = orderService.list(user.getId(), status);
 		map.put("orders", orders);
 		
-		getOrderItemsInfoByOrders(map, orders);
-		
-		return map;
-	}
-	
-	private void getOrderItemsInfoByOrders(Map<String,Object> map, List<Order> orders) {
 		List<List<OrderItem>> orderItems = new ArrayList<List<OrderItem>>();
 		List<List<Product>> products = new ArrayList<List<Product>>();
-		List<Float> totals = new ArrayList<Float>();
 		List<Integer> allCounts = new ArrayList<Integer>();
 		for(Order order : orders) {
-			float total = 0;
 			int allCount = 0;
 			List<OrderItem> orderItem = orderItemService.listByOid(order.getId());
-			orderItems.add(orderItem);
 			List<Product> product = new ArrayList<Product>();
 			for(OrderItem o : orderItem) {
 				Product p = productService.get(o.getPid());
 				product.add(p);
-				total += o.getNumber() * p.getOriginalPrice();
 				allCount += o.getNumber();
 			}
+			orderItems.add(orderItem);
 			products.add(product);
-			totals.add(total);
 			allCounts.add(allCount);
 		}
 		map.put("orderItems", orderItems);
 		map.put("products", products);
-		map.put("totals", totals);
 		map.put("allCounts", allCounts);
+		
+		return map;
 	}
 	
 	/**
@@ -494,6 +512,18 @@ public class ForeRESTController {
 		
 		list.set(newIdx, list.get(oldIdx));
 		list.set(oldIdx, temp);
+	}
+	
+	/**
+	 * 查询所有积分
+	 * @param session
+	 * @return List<Reward>
+	 */
+	@GetMapping("forereward")
+	public Object forereward(HttpSession session) {
+		User user = (User)session.getAttribute("user");
+		List<Reward> rewards = rewardService.list(user.getId());
+		return rewards;
 	}
 	
 }

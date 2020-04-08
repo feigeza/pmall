@@ -1,5 +1,6 @@
 package com.pigeon.pmall.service.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,11 @@ import com.pigeon.pmall.mapper.OrderMapper;
 import com.pigeon.pmall.pojo.Order;
 import com.pigeon.pmall.pojo.OrderExample;
 import com.pigeon.pmall.pojo.OrderItem;
+import com.pigeon.pmall.pojo.Reward;
 import com.pigeon.pmall.service.OrderItemService;
 import com.pigeon.pmall.service.OrderService;
 import com.pigeon.pmall.service.ProductService;
+import com.pigeon.pmall.service.RewardService;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -24,6 +27,8 @@ public class OrderServiceImpl implements OrderService {
 	OrderItemService orderItemService;
 	@Autowired
 	ProductService productService;
+	@Autowired
+	RewardService rewardService;
 	
 	@Override
 	public void add(Order order) {
@@ -33,13 +38,32 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	@Transactional(propagation= Propagation.REQUIRED,rollbackForClassName="Exception")
 	public float add(Order order, List<OrderItem> orderItems) {
+		add(order); //先添加，获得order的id，并给到orderItem
 		float total = 0;
-		add(order);
 		
 		for(OrderItem orderItem : orderItems) {
+			float subTotal = productService.get(orderItem.getPid()).getOriginalPrice() * orderItem.getNumber();
 			orderItem.setOid(order.getId());
+			orderItem.setSubTotal(subTotal);
 			orderItemService.update(orderItem);
-			total += productService.get(orderItem.getPid()).getOriginalPrice() * orderItem.getNumber();
+			total += subTotal;
+		}
+		
+		total = total + order.getPostage() - order.getReduce();
+		order.setTotal(total);
+		update(order);
+		
+		//减少积分
+		if(0!=order.getReduce()) {
+			Reward reward = new Reward();
+			reward.setUid(order.getUid());
+			reward.setOperation(RewardService.USE);
+			List<Reward> rewards = rewardService.list(order.getUid());
+			Float totalReward = rewards.get(0).getTotal();
+			totalReward -= order.getReduce()*100;
+			reward.setTotal(totalReward);
+			reward.setCreateDate(new Date());
+			rewardService.add(reward);
 		}
 		
 		return total;

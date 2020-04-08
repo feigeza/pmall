@@ -15,6 +15,13 @@ public interface OrderService {
     
     void add(Order order);
     
+    /**
+     * 增加订单，关联OrderItem。
+     * 设置OrderItem的subTotal，以及Order的Total
+     * @param order
+     * @param orderItems
+     * @return Total
+     */
     float add(Order order, List<OrderItem> orderItems);
     
     void update(Order order);

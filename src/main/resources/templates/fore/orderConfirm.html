@@ -22,8 +22,8 @@
 				</van-col>
 				<div v-if="showAddress" >
 					<van-col span="17">
-						<p>{{data4Address.receiver}} {{data4Address.mobile}}</p>
-						<p class="orderConfirm-address-text-position">{{data4Address.address}}</p>
+						<p>{{data4Order.receiver}} {{data4Order.mobile}}</p>
+						<p class="orderConfirm-address-text-position">{{data4Order.address}}</p>
 					</van-col>
 					<van-col span="2" class="orderConfirm-address-arrow" @click="toEditAddress">
 						<van-icon name="arrow"></van-icon>
@@ -44,35 +44,35 @@
 			>
 				<van-form @submit="onSave">
 					<van-field
-					    v-model="data4Address.receiver"
+					    v-model="data4Order.receiver"
 					    name="receiver"
 					    label="姓名"
 					    placeholder="姓名"
 					    :rules="[{ required: true, message: '请填写姓名' }]"
 					></van-field>
 					<van-field
-					    v-model="data4Address.mobile"
+					    v-model="data4Order.mobile"
 					    name="mobile"
 					    label="电话"
 					    placeholder="电话"
 					    :rules="[{ required: true, message: '请填写电话' }]"
 					></van-field>
 					<van-field
-					    v-model="data4Address.address"
+					    v-model="data4Order.address"
 					    name="address"
 					    label="地址"
 					    placeholder="地址"
 					    :rules="[{ required: true, message: '请填写地址' }]"
 					></van-field>
 					<van-field
-					    v-model="data4Address.post"
+					    v-model="data4Order.post"
 					    name="post"
 					    label="邮政编码"
 					    placeholder="邮政编码"
 					    :rules="[{ required: true, message: '请填写邮政编码' }]"
 					></van-field>
 					<van-field
-					    v-model="data4Address.userMessage"
+					    v-model="data4Order.userMessage"
 					    name="userMessage"
 					    label="给商家留言"
 					    placeholder="给商家留言，非必填"
@@ -99,6 +99,49 @@
 				</van-card>
 			</van-row>
 			
+			<van-row class="orderConfirm-orderItem">
+				<div class="orderConfirm-orderItem-col" >
+					<van-col span="6" offset="1">
+						邮费
+					</van-col>
+					<van-col span="15">
+						￥{{data4Order.postage}}
+					</van-col>
+					<!-- <van-col span="2">
+						<van-icon name="arrow" ></van-icon>
+					</van-col> -->
+				</div>
+				<div class="orderConfirm-orderItem-col" >
+					<van-col span="6" offset="1">
+						鸽子币抵钱
+					</van-col>
+					<van-col span="15" style="color: #FA4B0C">
+						<span v-if="0 == data4Order.reduce">未使用</span><span v-else>-￥{{data4Order.reduce}}</span>
+					</van-col>
+					<van-col span="2">
+						<van-icon name="arrow" @click="onUseReward"></van-icon>
+					</van-col>
+				</div>
+			</van-row>
+			
+			<van-popup
+				v-model="showReward"
+				closeable
+			    round
+			    position="bottom"
+			    :style="{ height: '20%' }"
+		  	>
+				<van-row class="orderConfirm-showReduce">
+					<van-col span="8" offset="1">可用积分</van-col>
+					<van-col span="14" offset="1">{{rewardNow}}</van-col>
+					<van-col span="8" offset="1">使用鸽子币</van-col>
+					<van-col span="14" offset="1">
+						<van-stepper v-model="reduce" step="100" min="0" :disable-plus="rewardNow<100" disable-input @change="onChangeReduce"></van-stepper>
+					</van-col>
+					<van-col span="14" offset="10">100鸽子币换1元</van-col>
+				</van-row>
+			</van-popup>
+			
 			<van-submit-bar
 				class="orderConfirm-bottom"
 			 	button-text="提交订单"
@@ -111,7 +154,7 @@
 					<span>
 						合计：
 						<span class="orderConfirm-bottom-price-symbol">￥</span>
-						<span class="orderConfirm-bottom-price-num">{{total | formatMoneyFilter}}</span>
+						<span class="orderConfirm-bottom-price-num">{{total + data4Order.postage - data4Order.reduce | formatMoneyFilter}}</span>
 					</span>
 				</van-col>
 				<van-col span="1"></van-col>
@@ -125,17 +168,23 @@
 		var data4Vue = {
 			showAddress: false,
 			showAddressEdit: false,
-			data4Address: {
+			showReward: false,
+			data4Order: {
 				address: '测试地址',
 				post: '430056',
 				receiver: '测试人',
 				mobile: '12344448888',
-				userMessage: ' '
+				userMessage: '',
+				postage: 0,
+				reduce: 0
 			},
 			orderItems: [],
 			products: [],
 			total: 0,
-			allCount: 0
+			allCount: 0,
+			reward: '',
+			reduce: 0,
+			rewardNow: 0
 		}
 
 		var vue = new Vue({
@@ -153,14 +202,15 @@
 				onSubmit() {
 					if(this.showAddress) {
 						var url = "forecreateorder";
-						var order = this.data4Address;
+						var order = this.data4Order;
 						axios.post(url,order).then(function(response) {
 							if(0==response.data.code) {
 								//成功，跳转付款页面
 								var result = response.data;
-		                    	var oid = result.data.oid;
+		                    	var order = result.data.order;
 		                    	var total = result.data.total;
-								location.href="pay?oid="+oid+"&total="+total;
+		                    	total = total + order.postage - order.reduce;
+								location.href="pay?oid="+order.id+"&total="+total;
 							}
 							else {
 								vant.Toast(response.data.message);
@@ -186,6 +236,7 @@
 						vue.orderItems = response.data.orderItems;
 						vue.total = response.data.total;
 						vue.allCount = response.data.allCount;
+						vue.data4Order.postage = response.data.postage;
 						for(let i=0; i<vue.orderItems.length; i++) {
 							vue.getProduct(vue.orderItems[i]);
 						}
@@ -196,6 +247,18 @@
 					axios.get(url).then(function(response){
 						vue.products.push(response.data);
 					})
+				},
+				onUseReward() {
+					this.showReward = true;
+					var url = "forereward";
+					axios.get(url).then(function(response){
+						vue.reward = response.data[0];
+						vue.rewardNow = vue.reward.total;
+					})
+				},
+				onChangeReduce() {
+					this.data4Order.reduce = this.reduce/100;
+					this.rewardNow = this.reward.total - this.reduce;
 				}
 			}
 		});
